@@ -22,7 +22,7 @@ export function ProductList({ products, results, selectedId, onSelect, onAdd }: 
     : products;
 
   return (
-    <Card className="flex min-h-0 flex-col lg:sticky lg:top-22 lg:max-h-[calc(100dvh-7rem)]">
+    <Card className="flex min-h-0 animate-enter flex-col lg:sticky lg:top-6 lg:max-h-[calc(100dvh-3rem)]">
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           Productos

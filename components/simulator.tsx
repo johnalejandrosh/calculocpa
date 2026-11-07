@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch } from "react";
+import type { Dispatch, ReactNode } from "react";
 import {
   HEALTH,
   effectiveAdCpa,
@@ -12,6 +12,7 @@ import {
 import { formatCOP, formatRoas } from "@/lib/format";
 import type { Action } from "@/lib/store";
 import { AmountInput } from "./amount-input";
+import { AnimatedNumber } from "./animated-number";
 import { Card, CardHeader, Field, Swatch, ToneIcon, cx } from "./ui";
 
 interface Zone {
@@ -88,7 +89,7 @@ export function Simulator({ product, result, dispatch }: SimulatorProps) {
                 {zones.map((zone) => (
                   <div
                     key={zone.health}
-                    className="first:rounded-l-full last:rounded-r-full"
+                    className="transition-[flex-grow] duration-500 ease-out-expo first:rounded-l-full last:rounded-r-full"
                     style={{
                       flex: `${Math.min(zone.to, scaleMax) - Math.min(zone.from, scaleMax)} 1 0`,
                       background: zone.color,
@@ -147,7 +148,7 @@ export function Simulator({ product, result, dispatch }: SimulatorProps) {
           <div className="grid grid-cols-2 gap-3">
             <Stat
               label="Ganancia por venta"
-              value={formatCOP(sim.profit)}
+              value={<AnimatedNumber value={sim.profit} format={formatCOP} />}
               delta={
                 sim.overMin >= 0
                   ? { text: `+${formatCOP(sim.overMin)} sobre tu mínimo`, good: true }
@@ -156,7 +157,7 @@ export function Simulator({ product, result, dispatch }: SimulatorProps) {
             />
             <Stat
               label="ROAS real"
-              value={formatRoas(sim.roas)}
+              value={sim.roas === null ? "—" : <AnimatedNumber value={sim.roas} format={formatRoas} />}
               note={result.viable ? `Objetivo ≥ ${formatRoas(result.roasMax)}` : undefined}
             />
           </div>
@@ -191,14 +192,14 @@ function Stat({
   delta,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
   note?: string;
   delta?: { text: string; good: boolean };
 }) {
   return (
     <div className="rounded-xl border border-line p-4">
       <p className="text-xs font-medium text-muted">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
       {delta && (
         <p className={cx("mt-1 text-xs font-medium", delta.good ? "text-good-ink" : "text-critical-ink")}>
           {delta.text}

@@ -1,4 +1,4 @@
-import { calculate, type Product } from "./cpa";
+import { calculate, costValue, type Product } from "./cpa";
 
 // Punto y coma: Excel en español usa la coma como separador decimal.
 const SEPARATOR = ";";
@@ -36,13 +36,13 @@ export function productsToCsv(products: Product[]): string {
     const r = calculate(product);
     const byLabel = new Map<string, number>();
     for (const cost of product.costs) {
-      byLabel.set(cost.label, (byLabel.get(cost.label) ?? 0) + cost.amount);
+      byLabel.set(cost.label, (byLabel.get(cost.label) ?? 0) + Math.round(costValue(cost, product.price)));
     }
     return [
       product.name,
       product.price,
       ...costLabels.map((label) => byLabel.get(label) ?? 0),
-      product.minProfit,
+      Math.round(r.minProfit),
       r.operating,
       Math.round(r.cpaMax),
       Math.round(r.cpaMed),

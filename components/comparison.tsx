@@ -201,7 +201,7 @@ function CpaChart({
                 <>
                   <div
                     className={cx(
-                      "flex h-4 gap-[2px] transition-opacity",
+                      "flex h-4 gap-[2px] transition-[width,opacity] duration-500 ease-out-expo",
                       hovered && hovered !== product.id && "opacity-40",
                     )}
                     style={{ width: `${(result.cpaMax / top) * 100}%` }}

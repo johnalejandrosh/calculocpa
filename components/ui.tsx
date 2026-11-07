@@ -9,7 +9,7 @@ export function cx(...classes: Array<string | false | null | undefined>) {
 export function Card({ className, ...props }: ComponentProps<"section">) {
   return (
     <section
-      className={cx("rounded-2xl border border-line bg-surface shadow-card", className)}
+      className={cx("rounded-xl border border-line bg-surface shadow-card", className)}
       {...props}
     />
   );
@@ -27,8 +27,8 @@ export function CardHeader({
   return (
     <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4 sm:px-6">
       <div className="min-w-0">
-        <h2 className="text-base font-semibold tracking-tight">{title}</h2>
-        {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
+        <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
+        {description && <p className="mt-0.5 max-w-prose text-[13px] text-muted">{description}</p>}
       </div>
       {actions}
     </header>
@@ -36,8 +36,8 @@ export function CardHeader({
 }
 
 const BUTTON_VARIANTS = {
-  primary: "bg-accent-strong text-white hover:bg-accent-strong/90",
-  secondary: "border border-line bg-surface text-ink hover:bg-surface-2",
+  primary: "bg-accent-strong text-white shadow-sm shadow-accent-strong/25 hover:bg-accent-strong/90",
+  secondary: "border border-line bg-surface text-ink shadow-xs hover:border-line-strong hover:bg-surface-2",
   ghost: "text-ink-2 hover:bg-surface-2 hover:text-ink",
   danger: "text-ink-2 hover:bg-critical/10 hover:text-critical-ink",
 } as const;
@@ -62,7 +62,8 @@ export function Button({
     <button
       type={type}
       className={cx(
-        "inline-flex shrink-0 items-center justify-center rounded-lg font-medium whitespace-nowrap transition-colors",
+        "inline-flex shrink-0 items-center justify-center rounded-lg font-medium whitespace-nowrap",
+        "transition-[color,background-color,border-color,box-shadow,scale] duration-150 active:scale-[0.97]",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:pointer-events-none disabled:opacity-40",
         "[&_svg]:size-4 [&_svg]:shrink-0",
         BUTTON_VARIANTS[variant],

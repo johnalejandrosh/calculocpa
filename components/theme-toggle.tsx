@@ -3,7 +3,7 @@
 import { useLayoutEffect } from "react";
 import { Moon, Sun } from "lucide-react";
 import { THEME_STORAGE_KEY as STORAGE_KEY } from "@/lib/theme";
-import { Button } from "./ui";
+import { Button, cx } from "./ui";
 
 function storedTheme() {
   try {
@@ -14,7 +14,7 @@ function storedTheme() {
   }
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ withLabel = false, className }: { withLabel?: boolean; className?: string }) {
   // En desarrollo, Strict Mode limpia los atributos de <html> al remontar; se reaplica aquí.
   useLayoutEffect(() => {
     const theme = storedTheme();
@@ -33,9 +33,22 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggle} aria-label="Cambiar tema claro u oscuro">
+    <Button
+      variant="ghost"
+      size={withLabel ? "md" : "icon"}
+      onClick={toggle}
+      aria-label={withLabel ? undefined : "Cambiar tema claro u oscuro"}
+      title={withLabel ? undefined : "Cambiar tema"}
+      className={cx(withLabel && "gap-3", className)}
+    >
       <Moon className="dark:hidden" />
       <Sun className="hidden dark:block" />
+      {withLabel && (
+        <>
+          <span className="dark:hidden">Tema oscuro</span>
+          <span className="hidden dark:inline">Tema claro</span>
+        </>
+      )}
     </Button>
   );
 }

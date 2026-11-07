@@ -6,9 +6,11 @@ import { newCost, type CostItem, type CpaResult, type Product } from "@/lib/cpa"
 import { formatCOP, formatRoas } from "@/lib/format";
 import type { Action } from "@/lib/store";
 import { AmountInput } from "./amount-input";
+import { AnimatedNumber } from "./animated-number";
+import { ValueInput } from "./value-input";
 import { CostBreakdown } from "./cost-breakdown";
 import { SEGMENT_COLOR, TIER_COLOR } from "./palette";
-import { Button, Card, Field, Swatch, ToneIcon } from "./ui";
+import { Button, Card, Field, Swatch, ToneIcon, cx } from "./ui";
 
 interface ProductEditorProps {
   product: Product;
@@ -23,7 +25,7 @@ export function ProductEditor({ product, result, dispatch, onDuplicate, onRemove
     dispatch({ type: "update", id: product.id, patch });
 
   return (
-    <Card id="editor" className="scroll-mt-22">
+    <Card id="editor" className="animate-enter scroll-mt-22 [animation-delay:40ms] lg:scroll-mt-6">
       <header className="flex items-center gap-3 border-b border-line px-5 py-4 sm:px-6">
         <div className="min-w-0 flex-1">
           <label htmlFor="product-name" className="text-xs font-medium text-muted">
@@ -64,11 +66,15 @@ export function ProductEditor({ product, result, dispatch, onDuplicate, onRemove
               <h3 className="text-sm font-medium">Costos por venta</h3>
               <span className="text-sm text-muted tabular-nums">{formatCOP(result.costs)}</span>
             </div>
-            <ul className="space-y-1.5">
+            <p className="-mt-1 mb-2.5 text-xs text-muted">
+              Escribe cada costo en $ o en % del precio de venta; el otro se calcula solo.
+            </p>
+            <ul className="@container space-y-1.5">
               {product.costs.map((cost) => (
                 <CostRow
                   key={cost.id}
                   cost={cost}
+                  price={product.price}
                   onChange={(patch) =>
                     dispatch({ type: "updateCost", id: product.id, costId: cost.id, patch })
                   }
@@ -88,10 +94,13 @@ export function ProductEditor({ product, result, dispatch, onDuplicate, onRemove
           </div>
 
           <Field id="min-profit" label="Ganancia mínima por venta" hint="Lo que quieres ganar sí o sí">
-            <AmountInput
+            <ValueInput
               id="min-profit"
-              value={product.minProfit}
-              onValueChange={(minProfit) => update({ minProfit })}
+              label="Ganancia mínima"
+              amount={product.minProfit}
+              percent={product.minProfitPercent}
+              base={product.price}
+              onChange={({ amount, percent }) => update({ minProfit: amount, minProfitPercent: percent })}
             />
           </Field>
 
@@ -110,9 +119,9 @@ export function ProductEditor({ product, result, dispatch, onDuplicate, onRemove
 
         {/* Resultados */}
         <div className="p-5 sm:p-6">
-          <CpaHero result={result} minProfit={product.minProfit} />
+          <CpaHero result={result} minProfit={result.minProfit} />
           <TierTable result={result} />
-          <CostBreakdown result={result} minProfit={product.minProfit} />
+          <CostBreakdown result={result} minProfit={result.minProfit} />
         </div>
       </div>
     </Card>
@@ -121,15 +130,18 @@ export function ProductEditor({ product, result, dispatch, onDuplicate, onRemove
 
 function CostRow({
   cost,
+  price,
   onChange,
   onRemove,
 }: {
   cost: CostItem;
+  price: number;
   onChange: (patch: Partial<Omit<CostItem, "id">>) => void;
   onRemove: () => void;
 }) {
   return (
-    <li className="group flex items-center gap-2">
+    // Una línea si la lista tiene ≥ 22rem; si no, los montos bajan a una segunda línea.
+    <li className="group grid animate-fade-in grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-1.5 gap-y-1 @min-[22rem]:grid-cols-[auto_minmax(0,1fr)_auto_auto]">
       <Swatch color={SEGMENT_COLOR[cost.group]} />
       <input
         value={cost.label}
@@ -137,11 +149,13 @@ function CostRow({
         aria-label="Concepto del costo"
         className="h-9 min-w-0 flex-1 rounded-md bg-transparent px-2 text-sm text-ink-2 outline-none hover:bg-surface-2 focus:bg-surface-2 focus:text-ink focus:ring-3 focus:ring-accent/20"
       />
-      <AmountInput
-        value={cost.amount}
-        onValueChange={(amount) => onChange({ amount })}
-        aria-label={`Monto de ${cost.label}`}
-        className="w-32 shrink-0 sm:w-40"
+      <ValueInput
+        label={cost.label}
+        amount={cost.amount}
+        percent={cost.percent}
+        base={price}
+        onChange={onChange}
+        className="col-span-full row-start-2 pl-4 @min-[22rem]:col-span-1 @min-[22rem]:row-start-auto @min-[22rem]:w-[11rem] @min-[22rem]:pl-0"
       />
       <Button
         variant="danger"
@@ -173,7 +187,7 @@ function SummaryRow({
         {label}
         {note && <span className="ml-1.5 text-xs text-muted">({note})</span>}
       </dt>
-      <dd className={strong ? "font-semibold tabular-nums" : "tabular-nums"}>{value}</dd>
+      <dd className={cx("whitespace-nowrap tabular-nums", strong && "font-semibold")}>{value}</dd>
     </div>
   );
 }
@@ -185,7 +199,11 @@ function CpaHero({ result, minProfit }: { result: CpaResult; minProfit: number }
         <Swatch color={SEGMENT_COLOR.cpa} />
         CPA máximo
       </p>
-      <p className="mt-1 text-5xl font-semibold tracking-tight">{formatCOP(result.cpaMax)}</p>
+      <AnimatedNumber
+        value={result.cpaMax}
+        format={formatCOP}
+        className="mt-1 block text-5xl font-semibold tracking-tighter tabular-nums"
+      />
       {result.viable ? (
         <p className="mt-2 max-w-md text-sm text-ink-2">
           Es lo máximo que puedes pagar en publicidad por cada venta y aún ganar{" "}

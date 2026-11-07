@@ -57,7 +57,7 @@ export function CostBreakdown({ result, minProfit }: { result: CpaResult; minPro
               key={segment.key}
               onMouseEnter={() => setActive(segment.key)}
               onMouseLeave={() => setActive(null)}
-              className="min-w-[3px] transition-opacity duration-150"
+              className="min-w-[3px] transition-[flex-grow,opacity] duration-500 ease-out-expo"
               style={{
                 flex: `${segment.value} 1 0`,
                 background: SEGMENT_COLOR[segment.key],

@@ -1,0 +1,69 @@
+// Esquema de la base de datos de la calculadora de CPA.
+// Refleja los tipos `Product` y `CostItem` de lib/cpa.ts.
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Grupo de un costo; las etiquetas visibles están en COST_GROUP_LABEL (lib/cpa.ts).
+enum CostGroup {
+  producto
+  flete
+  riesgo
+  operacion
+
+  @@map("cost_group")
+}
+
+model Product {
+  /// Texto y no UUID: `createId()` genera otro formato cuando el navegador no tiene crypto.randomUUID.
+  id               String     @id @default(uuid())
+  name             String
+  /// Precio de venta al cliente, en pesos.
+  price            Decimal    @default(0) @db.Decimal(14, 2)
+  /// Ganancia mínima que se quiere obtener por venta.
+  minProfit        Decimal    @default(0) @map("min_profit") @db.Decimal(14, 2)
+  /// Ganancia mínima como % del precio de venta; null = monto fijo (min_profit).
+  minProfitPercent Decimal?   @map("min_profit_percent") @db.Decimal(5, 2)
+  /// CPA real de la campaña para el simulador; null usa el CPA medio.
+  adCpa            Decimal?   @map("ad_cpa") @db.Decimal(14, 2)
+  /// Ventas al mes para la proyección del simulador.
+  monthlyOrders    Int        @default(0) @map("monthly_orders")
+  /// Pedidos generados, base (100 %) de la proyección por porcentajes.
+  projectedOrders  Int        @default(100) @map("projected_orders")
+  /// % de los pedidos generados que se envían (0–100).
+  shippedRate      Decimal    @default(80) @map("shipped_rate") @db.Decimal(5, 2)
+  /// % de los pedidos generados que se entregan; nunca supera shippedRate.
+  deliveredRate    Decimal    @default(60) @map("delivered_rate") @db.Decimal(5, 2)
+  /// Orden del producto en la lista.
+  position         Int        @default(0)
+  costs            CostItem[]
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  @@index([position])
+  @@map("products")
+}
+
+model CostItem {
+  id        String    @id @default(uuid())
+  productId String    @map("product_id")
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label     String
+  /// Costo por venta, en pesos.
+  amount    Decimal   @default(0) @db.Decimal(14, 2)
+  /// % del precio de venta; si tiene valor, amount guarda su equivalente en pesos.
+  percent   Decimal?  @db.Decimal(5, 2)
+  group     CostGroup @default(operacion)
+  /// Orden del costo dentro del producto.
+  position  Int       @default(0)
+
+  @@index([productId, position])
+  @@map("cost_items")
+}
